@@ -32,6 +32,13 @@
       <version>3.3.1</version>
     </dependency>
 
+    <dependency> <!-- Spark dependency -->
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-sql_2.12</artifactId>
+      <version>3.3.1</version>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- Hadoop Dependencies -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
