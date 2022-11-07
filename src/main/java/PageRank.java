@@ -24,6 +24,7 @@ public class PageRank {
                         Arrays.stream(s.split(": ")[1].split(" ")).mapToLong(Long::parseLong).toArray()));
         JavaPairRDD<Long, String> titles = spark.read().textFile(args[1]).javaRDD().zipWithIndex()
                 .mapToPair(x -> new Tuple2<>(x._2(), x._1())).cache();
+        // TODO: I'm pretty sure this is wrong, should be changed
         RDD<MatrixEntry> entries = links.flatMap(l -> {
             ArrayList<MatrixEntry> es = new ArrayList<MatrixEntry>();
             for (long i : l._2()) {
