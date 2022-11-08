@@ -10,7 +10,7 @@ import org.apache.spark.sql.SparkSession;
 
 import scala.Tuple2;
 
-import org.apache.spark.mllib.linalg.DenseMatrix;
+import org.apache.spark.mllib.linalg.DenseVector;
 import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix;
 import org.apache.spark.mllib.linalg.distributed.MatrixEntry;
 import org.apache.spark.rdd.RDD;
@@ -37,8 +37,7 @@ public class PageRank {
         }).rdd();
         CoordinateMatrix linkMatrix = new CoordinateMatrix(linkEntries, titles.count(), titles.count());
         JavaRDD<Double> ranks = links.map(link -> 1.0 / titles.count());
-        DenseMatrix rankVector = new DenseMatrix((int) titles.count(), 1,
-                ArrayUtils.toPrimitive((Double[]) ranks.collect().toArray()));
+        DenseVector rankVector = new DenseVector(ArrayUtils.toPrimitive((Double[]) ranks.collect().toArray()));
         for (int i = 0; i < 25; i++) {
             rankVector = linkMatrix.toBlockMatrix().toLocalMatrix().multiply(rankVector);
         }
