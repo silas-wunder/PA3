@@ -43,6 +43,8 @@ public class TaxedPageRank {
         for (int i = 0; i < 25; i++) {
             double[] newRankVector = linkMatrix.toBlockMatrix().toLocalMatrix().multiply(rankVector).values();
             for (int j = 0; j < newRankVector.length; i++) {
+                // TODO: Matrix is bigger than max_int, has 32 billion elements, needs to be
+                // smaller
                 newRankVector[j] = (newRankVector[j] * 0.85) + (0.15 / numPages);
             }
             rankVector = new DenseVector(newRankVector);

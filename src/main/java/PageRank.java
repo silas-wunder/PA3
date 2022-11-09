@@ -41,6 +41,8 @@ public class PageRank {
         DenseVector rankVector = new DenseVector(
                 Arrays.stream(ranks.collect().toArray()).mapToDouble(n -> Double.parseDouble(n.toString())).toArray());
         for (int i = 0; i < 25; i++) {
+            // TODO: Matrix is bigger than max_int, has 32 billion elements, needs to be
+            // smaller
             rankVector = linkMatrix.toBlockMatrix().toLocalMatrix().multiply(rankVector);
         }
         JavaPairRDD<Long, Double> ranksSorted = sc.parallelize(Arrays.asList(ArrayUtils.toObject(rankVector.values())))
