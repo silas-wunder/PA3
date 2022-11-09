@@ -6,6 +6,7 @@ import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.ml.linalg.SparseMatrix;
 import org.apache.spark.sql.SparkSession;
 
 import scala.Tuple2;
@@ -37,6 +38,7 @@ public class TaxedPageRank {
             return es.iterator();
         }).rdd();
         CoordinateMatrix linkMatrix = new CoordinateMatrix(linkEntries, numPages, numPages);
+        SparseMatrix sparse; //perhaps a local matrix might work better?
         JavaRDD<Double> ranks = links.map(link -> 1.0 / numPages);
         DenseVector rankVector = new DenseVector(
                 Arrays.stream(ranks.collect().toArray()).mapToDouble(n -> Double.parseDouble(n.toString())).toArray());
@@ -45,7 +47,7 @@ public class TaxedPageRank {
             for (int j = 0; j < newRankVector.length; i++) {
                 // TODO: Matrix is bigger than max_int, has 32 billion elements, needs to be
                 // smaller
-                //CoordinateMatrix is a distributed matrix. Maybe it's double-counting/we're double-inserting elements?
+                //TODO: CoordinateMatrix is a distributed matrix. Maybe it's double-counting/we're double-inserting elements?
                 newRankVector[j] = (newRankVector[j] * 0.85) + (0.15 / numPages);
             }
             rankVector = new DenseVector(newRankVector);
