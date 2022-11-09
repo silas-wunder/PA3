@@ -27,6 +27,7 @@ public class PageRank {
                         Arrays.stream(s.split(": ")[1].split(" ")).mapToLong(Long::parseLong).toArray()));
         JavaPairRDD<Long, String> titles = spark.read().textFile(args[1]).javaRDD().zipWithIndex()
                 .mapToPair(x -> new Tuple2<>(x._2(), x._1())).cache();
+        long numPages = titles.count();
         // TODO: maybe not wrong? someone should take a look at this tho
         RDD<MatrixEntry> linkEntries = links.flatMap(link -> {
             ArrayList<MatrixEntry> es = new ArrayList<MatrixEntry>();
@@ -35,8 +36,8 @@ public class PageRank {
             }
             return es.iterator();
         }).rdd();
-        CoordinateMatrix linkMatrix = new CoordinateMatrix(linkEntries, titles.count(), titles.count());
-        JavaRDD<Double> ranks = links.map(link -> 1.0 / titles.count());
+        CoordinateMatrix linkMatrix = new CoordinateMatrix(linkEntries, numPages, numPages);
+        JavaRDD<Double> ranks = links.map(link -> 1.0 / numPages);
         DenseVector rankVector = new DenseVector(ArrayUtils.toPrimitive((Double[]) ranks.collect().toArray()));
         for (int i = 0; i < 25; i++) {
             rankVector = linkMatrix.toBlockMatrix().toLocalMatrix().multiply(rankVector);
