@@ -38,6 +38,7 @@ public class TaxedPageRank {
         }).rdd();
         CoordinateMatrix linkMatrix = new CoordinateMatrix(linkEntries, numPages, numPages);
         JavaRDD<Double> ranks = links.map(link -> 1.0 / numPages);
+        // TODO: this isn't casting properly, find a different way to do it
         DenseVector rankVector = new DenseVector(ArrayUtils.toPrimitive((Double[]) ranks.collect().toArray()));
         for (int i = 0; i < 25; i++) {
             double[] newRankVector = linkMatrix.toBlockMatrix().toLocalMatrix().multiply(rankVector).values();
