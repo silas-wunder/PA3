@@ -45,6 +45,7 @@ public class TaxedPageRank {
             for (int j = 0; j < newRankVector.length; i++) {
                 // TODO: Matrix is bigger than max_int, has 32 billion elements, needs to be
                 // smaller
+                //CoordinateMatrix is a distributed matrix. Maybe it's double-counting/we're double-inserting elements?
                 newRankVector[j] = (newRankVector[j] * 0.85) + (0.15 / numPages);
             }
             rankVector = new DenseVector(newRankVector);
