@@ -6,15 +6,13 @@ import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.ml.linalg.SparseMatrix;
 import org.apache.spark.sql.SparkSession;
 
 import scala.Tuple2;
 
 import org.apache.spark.mllib.linalg.DenseVector;
-import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix;
+import org.apache.spark.mllib.linalg.SparseMatrix;
 import org.apache.spark.mllib.linalg.distributed.MatrixEntry;
-import org.apache.spark.rdd.RDD;
 
 public class TaxedPageRank {
 
@@ -29,25 +27,29 @@ public class TaxedPageRank {
         JavaPairRDD<Long, String> titles = spark.read().textFile(args[1]).javaRDD().zipWithIndex()
                 .mapToPair(x -> new Tuple2<>(x._2(), x._1())).cache();
         long numPages = titles.count();
-        // TODO: maybe not wrong? someone should take a look at this tho
-        RDD<MatrixEntry> linkEntries = links.flatMap(link -> {
+        JavaRDD<MatrixEntry> linkEntries = links.flatMap(link -> {
             ArrayList<MatrixEntry> es = new ArrayList<MatrixEntry>();
             for (long i : link._2()) {
                 es.add(new MatrixEntry(link._1(), i, 1.0 / link._2().length));
             }
             return es.iterator();
-        }).rdd();
-        CoordinateMatrix linkMatrix = new CoordinateMatrix(linkEntries, numPages, numPages);
-        SparseMatrix sparse; //perhaps a local matrix might work better?
+        });
+        int[] rows = Arrays.stream(linkEntries.map(x -> {
+            return (int) x.i();
+        }).collect().toArray()).mapToInt(n -> Integer.parseInt(n.toString())).toArray();
+        int[] cols = Arrays.stream(linkEntries.map(x -> {
+            return (int) x.j();
+        }).collect().toArray()).mapToInt(n -> Integer.parseInt(n.toString())).toArray();
+        double[] values = Arrays.stream(linkEntries.map(x -> {
+            return (int) x.value();
+        }).collect().toArray()).mapToDouble(n -> Double.parseDouble(n.toString())).toArray();
+        SparseMatrix sparseLinkMatrix = new SparseMatrix((int) numPages, (int) numPages, cols, rows, values);
         JavaRDD<Double> ranks = links.map(link -> 1.0 / numPages);
         DenseVector rankVector = new DenseVector(
                 Arrays.stream(ranks.collect().toArray()).mapToDouble(n -> Double.parseDouble(n.toString())).toArray());
         for (int i = 0; i < 25; i++) {
-            double[] newRankVector = linkMatrix.toBlockMatrix().toLocalMatrix().multiply(rankVector).values();
+            double[] newRankVector = sparseLinkMatrix.multiply(rankVector).values();
             for (int j = 0; j < newRankVector.length; i++) {
-                // TODO: Matrix is bigger than max_int, has 32 billion elements, needs to be
-                // smaller
-                //TODO: CoordinateMatrix is a distributed matrix. Maybe it's double-counting/we're double-inserting elements?
                 newRankVector[j] = (newRankVector[j] * 0.85) + (0.15 / numPages);
             }
             rankVector = new DenseVector(newRankVector);
