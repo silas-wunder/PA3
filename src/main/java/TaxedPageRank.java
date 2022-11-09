@@ -34,16 +34,16 @@ public class TaxedPageRank {
             }
             return es.iterator();
         });
-        int[] rows = Arrays.stream(linkEntries.map(x -> {
-            return (int) x.i();
-        }).collect().toArray()).mapToInt(n -> Integer.parseInt(n.toString())).toArray();
-        int[] cols = Arrays.stream(linkEntries.map(x -> {
-            return (int) x.j();
-        }).collect().toArray()).mapToInt(n -> Integer.parseInt(n.toString())).toArray();
-        double[] values = Arrays.stream(linkEntries.map(x -> {
-            return (int) x.value();
-        }).collect().toArray()).mapToDouble(n -> Double.parseDouble(n.toString())).toArray();
-        SparseMatrix sparseLinkMatrix = new SparseMatrix((int) numPages, (int) numPages, cols, rows, values);
+        SparseMatrix sparseLinkMatrix = new SparseMatrix((int) numPages, (int) numPages,
+                Arrays.stream(linkEntries.map(x -> {
+                    return (int) x.j();
+                }).collect().toArray()).mapToInt(n -> Integer.parseInt(n.toString())).toArray(),
+                Arrays.stream(linkEntries.map(x -> {
+                    return (int) x.i();
+                }).collect().toArray()).mapToInt(n -> Integer.parseInt(n.toString())).toArray(),
+                Arrays.stream(linkEntries.map(x -> {
+                    return (int) x.value();
+                }).collect().toArray()).mapToDouble(n -> Double.parseDouble(n.toString())).toArray());
         JavaRDD<Double> ranks = links.map(link -> 1.0 / numPages);
         DenseVector rankVector = new DenseVector(
                 Arrays.stream(ranks.collect().toArray()).mapToDouble(n -> Double.parseDouble(n.toString())).toArray());
