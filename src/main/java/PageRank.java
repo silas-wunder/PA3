@@ -34,6 +34,7 @@ public class PageRank {
             }
             return es.iterator();
         });
+        // TODO: This is too big for heap, find a smaller/cheaper way to do it
         SparseMatrix sparseLinkMatrix = new SparseMatrix((int) numPages, (int) numPages,
                 Arrays.stream(linkEntries.map(x -> {
                     return (int) x.j();
